@@ -1,7 +1,10 @@
 import numpy as np
+from neural_network import NeuralNetworkWTA
 import matplotlib.pyplot as plt
 
 N = 4
+
+
 def act(x):
     pass
 
@@ -16,5 +19,5 @@ input_vectors = np.array([[0.97, 0.20],
                           [-0.3, -0.95]
                           ])
 
-
-
+wta = NeuralNetworkWTA(input_vectors)
+wta.feedforward()
