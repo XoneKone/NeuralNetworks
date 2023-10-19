@@ -1,5 +1,7 @@
 import numpy as np
 
+np.random.seed(127)
+
 
 class NeuralNetworkWTA:
     def __init__(self, x):
@@ -9,12 +11,27 @@ class NeuralNetworkWTA:
         self.weights = np.random.rand(self.input_vectors.shape[1], 4)
         self.output = np.zeros(4)
         self.nu = 0.5
-        print("Изначальные веса - ")
+        print("Изначальные веса:")
         print(self.weights)
 
     def feedforward(self):
+        self.weights = np.random.rand(self.input_vectors.shape[1], 4)
+        self.output = np.zeros(4)
         for vector in self.input_vectors:
             self.layer = np.dot(vector, self.weights)
+            self.winner = np.argmax(self.layer)
+            self.output[self.winner] += 1.0
+            delta = (self.weights[:, self.winner] +
+                     self.nu * (np.transpose(vector) - self.weights[:, self.winner]))
+            self.weights[:, self.winner] = delta
+            self.show_statistics(vector)
+
+    def feedforward_with_penalties(self):
+        self.weights = np.random.rand(self.input_vectors.shape[1], 4)
+        self.output = np.zeros(4)
+        for vector in self.input_vectors:
+            self.layer = np.dot(vector, self.weights)
+            self.layer = self.layer - np.array([np.exp(i) if i > 0.0 else 0.0 for i in self.output])
             self.winner = np.argmax(self.layer)
             self.output[self.winner] += 1.0
             delta = (self.weights[:, self.winner] +

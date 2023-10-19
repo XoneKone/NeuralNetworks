@@ -20,4 +20,11 @@ input_vectors = np.array([[0.97, 0.20],
                           ])
 
 wta = NeuralNetworkWTA(input_vectors)
+print("@"*100)
+print("Обычный метод")
+print("@"*100)
 wta.feedforward()
+print("@"*100)
+print("Метод со штрафами")
+print("@"*100)
+wta.feedforward_with_penalties()
