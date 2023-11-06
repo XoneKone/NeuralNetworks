@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 
 
 def task_1():
@@ -33,9 +34,6 @@ def task_1():
 
 
 def task_2():
-    import random
-    random.seed(20)
-
     def generate_marked_dots(n=20):
         dots = [[round(random.random(), 5), round(random.random(), 5)] for i in range(n)]
         for dot in dots:
@@ -45,87 +43,107 @@ def task_2():
                 dot.append(1)
         return dots
 
-    def act_adaline(x):
-        if x < 0:
+    def act_adaline(u):
+        if u < 0:
             return -1
-        if x > 0:
+        if u > 0:
             return 1
-    def df_relu(x):
-        return 0 if x < 0 else 1
 
-    def act_perceptron(x):
-
-    def df_sig(x):
-        return 0.5 * (1 + x) * (1 - x)
+    def act_perceptron(u):
+        if u < 0:
+            return 0
+        if u > 0:
+            return 1
 
     def go_forward_adaline(input_vectors, W):
-        sum = np.dot(W, input_vectors)
-        y = relu(sum)
+        u = np.dot(input_vectors, W)
+        y = act_adaline(u)
         return y
 
     def go_forward_perceptron(input_vectors, W):
-        sum = np.dot(W, input_vectors)
-        y = relu(sum)
+        u = np.dot(input_vectors, W)
+        y = act_perceptron(u)
         return y
 
-    def train(epoch, W):
-        lmd = 0.01
-        N = 1000
+    def clarification_weights_perceptron(y, x, W):
+        if y == 0 and x[-1] == 1:
+            W = W + x[:2]
+        if y == 1 and x[-1] == 0:
+            W = W - x[:2]
+        return W
+
+    def clarification_weights_adaline(y, x, W):
+        nu = np.float64(0.5)
+        e = x[-1] - np.dot(x[:2], W)
+        delta = np.dot(nu * e, x[:2])
+        W = W + delta
+        return W
+
+    def train(epoch, W, go_forward_func, clarification_weights_func):
         count = len(epoch)
-        for k in range(N):
-            x = epoch[np.random.randint(0, count)]
-            y = go_forward(x[:2], W)
-            e = y - x[-1]
-            delta = e * df_relu(y)
-            W = W - lmd * delta * np.array(x[:2])
+        for k in range(count):
+            x = epoch[k]
+            y = go_forward_func(x[:2], W)
+            W = clarification_weights_func(y, x, W)
+        return W
 
-    W = np.array([round(np.random.uniform(-1, 1), 2), round(np.random.uniform(-1, 1), 2)])
+    random.seed(127)
+    W1 = np.array([round(np.random.uniform(-1, 1), 2),
+                   round(np.random.uniform(-1, 1), 2)])
+    W2 = W1.copy()
+
     train_marked_dots = generate_marked_dots()
-    train(train_marked_dots, W)
 
-    for x in train_marked_dots:
-        y = go_forward(x[:2], W)
-        print(f"Выходное значение НС: {y} => {x[-1]}")
+    W1 = train(train_marked_dots,
+               W1,
+               go_forward_perceptron,
+               clarification_weights_perceptron)
+
+    W2 = train(train_marked_dots,
+               W2,
+               go_forward_adaline,
+               clarification_weights_adaline)
+
+    test_marked_dots = generate_marked_dots(1000)
+
+    mistakes = 0
+    print("Персептрон")
+    for x in test_marked_dots:
+        y = go_forward_perceptron(x[:2], W1)
+        if y != x[-1]:
+            mistakes += 1
+
+    print(f"Всего предсказаний => {len(test_marked_dots)}")
+    print(f"Количество верных предсказаний => {len(test_marked_dots) - mistakes}")
+    print(f"Количество ошибок => {mistakes}")
+    print(f"Процент правильных ответов => {(len(test_marked_dots) - mistakes) / len(test_marked_dots)}")
+
+    print("-" * 100)
+    print("Адалайн")
+    mistakes = 0
+    for x in test_marked_dots:
+        y = go_forward_adaline(x[:2], W2)
+        if (y == -1 and x[-1] == 1) or (y == 1 and x[-1] == 0):
+            mistakes += 1
+
+    print(f"Всего предсказаний => {len(test_marked_dots)}")
+    print(f"Количество верных предсказаний => {len(test_marked_dots) - mistakes}")
+    print(f"Количество ошибок => {mistakes}")
+    print(f"Процент правильных ответов => {(len(test_marked_dots) - mistakes) / len(test_marked_dots)}")
 
 
 def task_3():
-    def relu(x):
-        return np.maximum(x, 0.0)
+    pass
 
-    def df_relu(x):
-        return 0 if x < 0 else 1
-
-    def sig(x):
-        return 2 / (1 + np.exp(-x)) - 1
-
-    def df_sig(x):
-        return 0.5 * (1 + x) * (1 - x)
-
-    def go_forward(input_vectors, W):
-        sum = np.dot(W, input_vectors)
-        y = relu(sum)
-        return y
-
-    def train(epoch, W):
-        lmd = 0.01
-        N = 1000
-        count = len(epoch)
-        for k in range(N):
-            x = epoch[np.random.randint(0, count)]
-            y = go_forward(x[:2], W)
-            e = y - x[-1]
-            delta = e * df_relu(y)
-            W = W - lmd * delta * np.array(x[:2])
-
-    W = np.array([round(np.random.uniform(-1, 1), 2), round(np.random.uniform(-1, 1), 2)])
-    train_marked_dots = generate_marked_dots()
-    train(train_marked_dots, W)
-
-    for x in train_marked_dots:
-        y = go_forward(x[:2], W)
-        print(f"Выходное значение НС: {y} => {x[-1]}")
+# train_marked_dots = generate_marked_dots()
+#  train(train_marked_dots, W)
+#
+#  for x in train_marked_dots:
+#      y = go_forward(x[:2], W)
+#      print(f"Выходное значение НС: {y} => {x[-1]}")
 
 
 if __name__ == '__main__':
     # task_1()
-    task_2()
+    #task_2()
+    task_3()

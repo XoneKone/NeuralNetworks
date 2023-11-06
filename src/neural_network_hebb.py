@@ -10,7 +10,7 @@ class NeuralNetworkHebb:
         self.input_vectors = x
         self.weights = np.random.rand(self.input_vectors.shape[1], 2)
         self.initial_weights = self.weights.copy()
-        self.output = np.zeros(2)
+        self.output = np.zeros(1)
         self.nu = 0.5
         self.yu = self.nu / 3
 
@@ -18,7 +18,7 @@ class NeuralNetworkHebb:
         self.weights = self.initial_weights.copy()
         self.output = np.zeros(2)
         for vector in self.input_vectors:
-            self.layer = np.dot(vector, self.weights)
+            self.layer = np.dot(self.weights, vector)
             self.weights = self.weights * (1 - self.yu) + self.nu * vector * self.layer
             self.show_statistics(vector)
 
