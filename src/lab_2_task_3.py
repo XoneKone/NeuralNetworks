@@ -91,6 +91,7 @@ def df_relu(x):
 def go_forward(inp):
     sum = np.dot(W1, inp)
     out = np.array([relu(x) for x in sum])
+
     out = np.append(out, 1)
     sum = np.dot(W2, out)
     y = np.array([relu(x) for x in sum])
@@ -99,23 +100,38 @@ def go_forward(inp):
 
 def train(epoch):
     lmd = 0.01
-    N = 1000
+    N = 10_000
     count = len(epoch)
     for k in range(N):
         x = epoch[np.random.randint(0, count)]
-        x[0].append(1)
         y, out = go_forward(x[0])
         e = y - x[-1].value
         delta = e * [df_relu(yi) for yi in y]
 
-        W2[0] = W2[0] - lmd * delta[0] * out[0]
-        W2[1] = W2[1] - lmd * delta[1] * out[1]
+        W2[0] = W2[0] - lmd * delta[0] * out
+        W2[1] = W2[1] - lmd * delta[1] * out
 
-        delta2 = W2 * delta * df_relu(out)
+        delta2 = np.array([delta[0] * W2[0, 0] + delta[1] * W2[1, 0],
+                           delta[0] * W2[0, 1] + delta[1] * W2[1, 1],
+                           delta[0] * W2[0, 2] + delta[1] * W2[1, 2]
+                           ])
 
-        W1[0, :] = W2[0] - lmd * delta * out[0]
-        W2[1] = W2[0] - lmd * delta * out[0]
-        W = W - lmd * delta * np.array(x[:2])
+        W1[0, :] = W1[0, :] - lmd * delta2[0] * np.array(x[0])
+        W1[1, :] = W1[1, :] - lmd * delta2[1] * np.array(x[0])
+        W1[2, :] = W1[2, :] - lmd * delta2[2] * np.array(x[0])
 
 
-train(input_vectors)
+if __name__ == '__main__':
+    for x in input_vectors:
+        x[0].append(1)
+
+    train(input_vectors)
+
+    for x in input_vectors:
+        y, out = go_forward(x[0])
+        e = y - x[-1].value
+        print("-" * 100)
+        print(f"Буква: {x[-1].name} {x[-1].value}")
+        print(f'Входной массив: {x[0]}')
+        print(f'Выходное значение НС: {y}')
+        print(f'Ошибка: {e}')
